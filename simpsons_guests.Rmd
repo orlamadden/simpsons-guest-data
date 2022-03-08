@@ -1,39 +1,56 @@
 ---
 title: "simpsons-guests"
 author: "Orla"
-date: "3/8/2022"
+date: "8/3/2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 theme_set(theme_light())
 
-simpsons <- simpsons <- readr::read_delim("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-08-27/simpsons-guests.csv", delim = "|", quote = "")
+simpsons <- simpsons <- readr::read_delim("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-08-27/simpsons-guests.csv", delim = "|", quote = "") %>%
+  # add self onto the original dataset
+  mutate(self = str_detect(role, "sel|selves"))
 
 ```
 
-## R Markdown
+## Which guest has appeared the most as themselves?
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r, echo=FALSE}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-
-# what gues stars appeared the most
+# what gues stars appeared the most, what role do they play
 simpsons %>%
-  count(guest_star, sort = TRUE)
+  count(guest_star, role, sort = TRUE) %>%
+  # who played himself and herself the most?
+  filter(role %in% c("Himself", "Herself"))
+
+
+simpsons %>%
+  count(guest_star, role, sort = TRUE) %>%
+  # who played himself, herself or themselves (group) the most?
+  filter(str_detect(role, "sel|selves")) %>%
+  count(role, sort = TRUE) %>%
+  View()
+
+
+simpsons %>%
+  filter(self) %>%
+  count(guest_star, sort = TRUE) %>%
+  filter(n > 1) %>%
+  mutate(guest_star = fct_reorder(guest_star, n)) %>%
+  ggplot(aes(guest_star, n)) +
+  geom_col() +
+  coord_flip()
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+
 
 ```{r pressure, echo=FALSE}
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
