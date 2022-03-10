@@ -43,14 +43,36 @@ simpsons %>%
   mutate(guest_star = fct_reorder(guest_star, n)) %>%
   ggplot(aes(guest_star, n)) +
   geom_col() +
-  coord_flip()
+  coord_flip() +
+  labs(title = "Who has played themselves in multiple Simpsons episodes?")
 
 ```
 
 
 
 
-```{r pressure, echo=FALSE}
+```{r, echo=FALSE}
+# filters where a guest star appears as multiple characters
+simpsons %>%
+  filter(str_detect(role, ";")) %>%
+  add_count(role)
+
+# separates new rows where a guest role appears in the season
+simpsons %>%
+  # separated by semi colon and spaces
+  separate_rows(role, sep = ";\\s+ ") %>%
+  #count(role, sort = TRUE)
+  add_count(role, sort = TRUE) %>%
+  filter(n >= 10) %>%
+  count(season = parse_number(season), role) %>%
+  mutate(role = fct_reorder(role, -n, sum)) %>%
+  ggplot(aes(season, n)) +
+  geom_col() +
+  facet_wrap(~ role)
 
 ```
+```{r}
 
+simpsons
+
+```
